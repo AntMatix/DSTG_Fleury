@@ -6,11 +6,14 @@ import xlsxwriter
 from classes.Metadata import Metadata
 from classes.Node import Node
 from classes.WastedTime import WastedTime
+from classes.Stack import Stack
 
 #globals
 KEY = "6Oo7jxmrndKt9l0c"
 KEY = KEY.encode()
 nodes = dict()
+visited_nodes = Stack()
+unnecessary_nodes = list()
 workers_wasted_time = dict()
 ##endOf globals
 
@@ -44,7 +47,7 @@ def handleDataConversion():
     for obj in loaded_objects:
         decryptedLabel =  decryptTheLabel(base64.b64decode(obj["label"]))
         metadataObj = createMetadataObject(decryptedLabel)
-        nodeObj = Node(metadataObj, obj["children"])
+        nodeObj = Node(obj["id"], metadataObj, obj["children"])
         nodes[obj["id"]] = nodeObj
 
     #Print out number of elements
@@ -54,15 +57,72 @@ def handleDataConversion():
     #for val in label_values:
     #    decryptTheLabel(base64.b64decode(val))
 
-def checkIfAuthorExists(author, dictionary):
-    try:
-        dictionary[author]
-        return True
-    except:
-        return False
 
-def addTimeToAuthorWastedTime(author, dictionary, time):
-    dictionary[author].time_wasted += time
+def numOfUnvisitedChildren():
+    last_node = visited_nodes.items[-1]
+    if(len(last_node.children) == 0):
+        return -1
+    numOfUnvisitedChildren = 0
+    for childId in last_node.children:
+        if (nodes[childId].visited == False):
+            numOfUnvisitedChildren += 1
+    return numOfUnvisitedChildren
+
+
+def returnFirstUnvisitedChildId():
+    last_node = visited_nodes.items[-1]
+    for childId in last_node.children:
+        if (nodes[childId].visited == False):
+            return childId
+    return False
+
+
+def findingRedundantNodes():
+    # for key, node in nodes.items():
+    nodes[1].visited = True
+    visited_nodes.push(nodes[1])
+    delete_flag = False
+    while (visited_nodes.isEmpty() == False):
+        last_node = visited_nodes.items[-1]
+        _numOfUnvisitedChildren = numOfUnvisitedChildren()
+        if (_numOfUnvisitedChildren > 0):
+            if(delete_flag == True):
+                visited_nodes.items[-1].fork += 1
+                delete_flag = False
+            if(delete_flag == False):
+                newLastNodeId = returnFirstUnvisitedChildId()
+                if (newLastNodeId != False):
+                    nodes[newLastNodeId].visited = True
+                    visited_nodes.push(nodes[newLastNodeId])
+##############################
+        elif (_numOfUnvisitedChildren == 0):
+            if(delete_flag == False):
+                visited_nodes.pop()
+            if(delete_flag == True):
+                visited_nodes.pop()
+                if (last_node.fork == (len(last_node.children)-1)):
+                    if (last_node.metadata._type != "CP"):
+                        unnecessary_nodes.append(last_node)
+                else:
+                    delete_flag = False
+##############################
+        elif (_numOfUnvisitedChildren == -1):
+            if (last_node.metadata.branch == "develop"):
+                visited_nodes.pop()
+            if (last_node.metadata.branch == "feature"):
+                delete_flag = True
+                if (last_node.metadata._type == "CP"):
+                    visited_nodes.pop()
+                else:
+                    visited_nodes.pop()
+                    unnecessary_nodes.append(last_node)
+
+
+
+
+
+
+
 
 def updateAuthorsWastedTime(author, dictionary, time):
     if author in dictionary:
@@ -71,7 +131,7 @@ def updateAuthorsWastedTime(author, dictionary, time):
         dictionary[author] = WastedTime(time)
 
 def calculateWastedTime():
-    for _, node in nodes.items():
+    for node in unnecessary_nodes:
         author = node.metadata.author
         time = node.metadata.time
         updateAuthorsWastedTime(author, workers_wasted_time, time)
@@ -129,6 +189,12 @@ def writeOutWastedTimeExcel():
 
 if __name__ == '__main__':
     handleDataConversion()
+
+    findingRedundantNodes()
+
+    for node in unnecessary_nodes:
+        node.printNode()
+
 
     calculateWastedTime()
 
