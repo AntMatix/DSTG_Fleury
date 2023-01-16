@@ -132,13 +132,15 @@ if __name__ == '__main__':
 
     calculateWastedTime()
 
+    writeOutWastedTime()
+    writeOutWastedTimeExcel()
+
     #printAllNodes()
 
     #example to access node with id
     #nodes[3].printNode()
 
     #printWorkersWastedTime()
-    #writeOutWastedTime()
-    writeOutWastedTimeExcel()
+    
 
     #print("Total wasted time: " + str(calculateTotalWastedTime()))
