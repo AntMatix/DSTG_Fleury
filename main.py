@@ -9,6 +9,8 @@ from classes.Node import Node
 KEY = "6Oo7jxmrndKt9l0c"
 KEY = KEY.encode()
 nodes = dict()
+workers_wasted_time = dict()
+total_time_wasted = 0
 ##endOf globals
 
 
@@ -51,12 +53,15 @@ def handleDataConversion():
     #for val in label_values:
     #    decryptTheLabel(base64.b64decode(val))
 
+        
+
 def printAllNodes():
     for key, node in nodes.items():
         print("*"*30)
         print("ID: ", key)
         node.printNode()
         print("*"*30)
+
 
 if __name__ == '__main__':
     handleDataConversion()
