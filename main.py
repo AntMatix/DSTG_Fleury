@@ -1,14 +1,17 @@
 from Crypto.Cipher import AES
 import base64
 import json
+import xlsxwriter
 
 from classes.Metadata import Metadata
 from classes.Node import Node
+from classes.WastedTime import WastedTime
 
 #globals
 KEY = "6Oo7jxmrndKt9l0c"
 KEY = KEY.encode()
 nodes = dict()
+workers_wasted_time = dict()
 ##endOf globals
 
 
@@ -51,6 +54,34 @@ def handleDataConversion():
     #for val in label_values:
     #    decryptTheLabel(base64.b64decode(val))
 
+def checkIfAuthorExists(author, dictionary):
+    try:
+        dictionary[author]
+        return True
+    except:
+        return False
+
+def addTimeToAuthorWastedTime(author, dictionary, time):
+    dictionary[author].time_wasted += time
+
+def updateAuthorsWastedTime(author, dictionary, time):
+    if author in dictionary:
+        dictionary[author].time_wasted += time
+    else:
+        dictionary[author] = WastedTime(time)
+
+def calculateWastedTime():
+    for _, node in nodes.items():
+        author = node.metadata.author
+        time = node.metadata.time
+        updateAuthorsWastedTime(author, workers_wasted_time, time)
+
+def calculateTotalWastedTime():
+    total_time_wasted = 0
+    for _, node in workers_wasted_time.items():
+        total_time_wasted += node.time_wasted
+    return total_time_wasted
+
 def printAllNodes():
     for key, node in nodes.items():
         print("*"*30)
@@ -58,10 +89,58 @@ def printAllNodes():
         node.printNode()
         print("*"*30)
 
+def printWorkersWastedTime():
+    for key, node in workers_wasted_time.items():
+        print("*"*30)
+        print("ID: ", key)
+        print("Wasted Time: " + str(node.time_wasted))
+        print("*"*30)
+
+def writeOutWastedTime():
+    with open("Wasted Time.txt", "w") as f:
+        f.write("Wasted Time per worker \n")
+        for key, node in workers_wasted_time.items():
+            f.write("ID: " + key + ", Wasted time: " + str(node.time_wasted) + "\n")
+        f.write("Wasted Time total: " + str(calculateTotalWastedTime()) + "\n")
+
+def writeOutWastedTimeExcel():
+    workbook = xlsxwriter.Workbook("Wasted Time.xlsx")
+    worksheet = workbook.add_worksheet()
+    worksheet.set_column("A:B", 25)
+
+    bold = workbook.add_format({'bold': True})
+
+    worksheet.write('A1', 'Email', bold)
+    worksheet.write('B1', 'Wasted time', bold)
+
+    row = 0
+
+    for key, node in workers_wasted_time.items():
+        row += 1
+        worksheet.write(row, 0, key)
+        worksheet.write(row, 1, str(node.time_wasted))
+
+    row += 2
+    worksheet.write(row, 0, "Total Wasted Time:", bold)
+    worksheet.write(row, 1, str(calculateTotalWastedTime()))
+
+    workbook.close()
+
+
 if __name__ == '__main__':
     handleDataConversion()
 
-    printAllNodes()
+    calculateWastedTime()
+
+    writeOutWastedTime()
+    writeOutWastedTimeExcel()
+
+    #printAllNodes()
 
     #example to access node with id
-    nodes[3].printNode()
+    #nodes[3].printNode()
+
+    #printWorkersWastedTime()
+    
+
+    #print("Total wasted time: " + str(calculateTotalWastedTime()))
