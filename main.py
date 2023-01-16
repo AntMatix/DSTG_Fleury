@@ -4,6 +4,7 @@ import json
 
 from classes.Metadata import Metadata
 from classes.Node import Node
+from classes.WastedTime import WastedTime
 
 #globals
 KEY = "6Oo7jxmrndKt9l0c"
@@ -53,7 +54,27 @@ def handleDataConversion():
     #for val in label_values:
     #    decryptTheLabel(base64.b64decode(val))
 
-        
+def checkIfAuthorExists(author, dictionary):
+    try:
+        dictionary[author]
+        return True
+    except:
+        return False
+
+def addTimeToAuthorWastedTime(author, dictionary, time):
+    dictionary[author].time_wasted += time
+
+def updateAuthorsWastedTime(author, dictionary, time):
+    if author in dictionary:
+        dictionary[author].time_wasted += time
+    else:
+        dictionary[author] = WastedTime(time)
+
+def calculateWastedTime():
+    for _, node in nodes.items():
+        author = node.metadata.author
+        time = node.metadata.time
+        updateAuthorsWastedTime(author, workers_wasted_time, time)
 
 def printAllNodes():
     for key, node in nodes.items():
@@ -62,11 +83,22 @@ def printAllNodes():
         node.printNode()
         print("*"*30)
 
+def printWorkersWastedTime():
+    for key, node in workers_wasted_time.items():
+        print("*"*30)
+        print("ID: ", key)
+        print("Wasted Time: " + str(node.time_wasted))
+        print("*"*30)
+
 
 if __name__ == '__main__':
     handleDataConversion()
 
-    printAllNodes()
+    calculateWastedTime()
+
+    #printAllNodes()
 
     #example to access node with id
-    nodes[3].printNode()
+    #nodes[3].printNode()
+
+    printWorkersWastedTime()
