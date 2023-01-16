@@ -11,7 +11,6 @@ KEY = "6Oo7jxmrndKt9l0c"
 KEY = KEY.encode()
 nodes = dict()
 workers_wasted_time = dict()
-total_time_wasted = 0
 ##endOf globals
 
 
@@ -76,6 +75,12 @@ def calculateWastedTime():
         time = node.metadata.time
         updateAuthorsWastedTime(author, workers_wasted_time, time)
 
+def calculateTotalWastedTime():
+    total_time_wasted = 0
+    for _, node in workers_wasted_time.items():
+        total_time_wasted += node.time_wasted
+    return total_time_wasted
+
 def printAllNodes():
     for key, node in nodes.items():
         print("*"*30)
@@ -90,6 +95,12 @@ def printWorkersWastedTime():
         print("Wasted Time: " + str(node.time_wasted))
         print("*"*30)
 
+def writeOutWastedTime():
+    with open("Wasted Time.txt", "w") as f:
+        f.write("Wasted Time per worker \n")
+        for key, node in workers_wasted_time.items():
+            f.write("ID: " + key + ", Wasted time: " + str(node.time_wasted) + "\n")
+        f.write("Wasted Time total: " + str(calculateTotalWastedTime()) + "\n")
 
 if __name__ == '__main__':
     handleDataConversion()
@@ -101,4 +112,7 @@ if __name__ == '__main__':
     #example to access node with id
     #nodes[3].printNode()
 
-    printWorkersWastedTime()
+    #printWorkersWastedTime()
+    #writeOutWastedTime()
+
+    #print("Total wasted time: " + str(calculateTotalWastedTime()))
