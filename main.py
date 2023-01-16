@@ -1,6 +1,7 @@
 from Crypto.Cipher import AES
 import base64
 import json
+import xlsxwriter
 
 from classes.Metadata import Metadata
 from classes.Node import Node
@@ -102,6 +103,30 @@ def writeOutWastedTime():
             f.write("ID: " + key + ", Wasted time: " + str(node.time_wasted) + "\n")
         f.write("Wasted Time total: " + str(calculateTotalWastedTime()) + "\n")
 
+def writeOutWastedTimeExcel():
+    workbook = xlsxwriter.Workbook("Wasted Time.xlsx")
+    worksheet = workbook.add_worksheet()
+    worksheet.set_column("A:B", 25)
+
+    bold = workbook.add_format({'bold': True})
+
+    worksheet.write('A1', 'Email', bold)
+    worksheet.write('B1', 'Wasted time', bold)
+
+    row = 0
+
+    for key, node in workers_wasted_time.items():
+        row += 1
+        worksheet.write(row, 0, key)
+        worksheet.write(row, 1, str(node.time_wasted))
+
+    row += 2
+    worksheet.write(row, 0, "Total Wasted Time:", bold)
+    worksheet.write(row, 1, str(calculateTotalWastedTime()))
+
+    workbook.close()
+
+
 if __name__ == '__main__':
     handleDataConversion()
 
@@ -114,5 +139,6 @@ if __name__ == '__main__':
 
     #printWorkersWastedTime()
     #writeOutWastedTime()
+    writeOutWastedTimeExcel()
 
     #print("Total wasted time: " + str(calculateTotalWastedTime()))
