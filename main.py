@@ -192,9 +192,10 @@ if __name__ == '__main__':
 
     findingRedundantNodes()
 
+    '''
     for node in unnecessary_nodes:
         node.printNode()
-
+    '''
 
     calculateWastedTime()
 
