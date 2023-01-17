@@ -25,7 +25,6 @@ def removePadding(plain_text):
 def decryptTheLabel(txtToDecrypt):
     decipher = AES.new(KEY, AES.MODE_ECB)
     decrypted = decipher.decrypt(txtToDecrypt).decode("utf8")
-    #print(removePadding(decrypted))
     noPaddingDecrypted = removePadding(decrypted)
     decryptedJSON = json.loads(noPaddingDecrypted)
     return decryptedJSON
@@ -37,26 +36,14 @@ def createMetadataObject(data):
         raise Exception("Can not create Metadata object")
 
 def handleDataConversion():
-    #Open the json file and read its contents into data variable
     with open("ZadatakInput.json", "r") as f:
         loaded_objects = json.load(f)
-
-    #Add values of each -label- element into array label_values
-    label_values = [obj["label"] for obj in loaded_objects]
 
     for obj in loaded_objects:
         decryptedLabel =  decryptTheLabel(base64.b64decode(obj["label"]))
         metadataObj = createMetadataObject(decryptedLabel)
         nodeObj = Node(obj["id"], metadataObj, obj["children"])
         nodes[obj["id"]] = nodeObj
-
-    #Print out number of elements
-    #print(len(label_values))
-
-    #Print out decrypted values for each label
-    #for val in label_values:
-    #    decryptTheLabel(base64.b64decode(val))
-
 
 def numOfUnvisitedChildren():
     last_node = visited_nodes.items[-1]
@@ -78,7 +65,6 @@ def returnFirstUnvisitedChildId():
 
 
 def findingRedundantNodes():
-    # for key, node in nodes.items():
     nodes[1].visited = True
     visited_nodes.push(nodes[1])
     delete_flag = False
@@ -94,7 +80,6 @@ def findingRedundantNodes():
                 if (newLastNodeId != False):
                     nodes[newLastNodeId].visited = True
                     visited_nodes.push(nodes[newLastNodeId])
-##############################
         elif (_numOfUnvisitedChildren == 0):
             if(delete_flag == False):
                 visited_nodes.pop()
@@ -105,7 +90,6 @@ def findingRedundantNodes():
                         unnecessary_nodes.append(last_node)
                 else:
                     delete_flag = False
-##############################
         elif (_numOfUnvisitedChildren == -1):
             if (last_node.metadata.branch == "develop"):
                 visited_nodes.pop()
@@ -116,13 +100,6 @@ def findingRedundantNodes():
                 else:
                     visited_nodes.pop()
                     unnecessary_nodes.append(last_node)
-
-
-
-
-
-
-
 
 def updateAuthorsWastedTime(author, dictionary, time):
     if author in dictionary:
@@ -142,19 +119,6 @@ def calculateTotalWastedTime():
         total_time_wasted += node.time_wasted
     return total_time_wasted
 
-def printAllNodes():
-    for key, node in nodes.items():
-        print("*"*30)
-        print("ID: ", key)
-        node.printNode()
-        print("*"*30)
-
-def printWorkersWastedTime():
-    for key, node in workers_wasted_time.items():
-        print("*"*30)
-        print("ID: ", key)
-        print("Wasted Time: " + str(node.time_wasted))
-        print("*"*30)
 
 def writeOutWastedTime():
     with open("Wasted Time.txt", "w") as f:
@@ -192,22 +156,7 @@ if __name__ == '__main__':
 
     findingRedundantNodes()
 
-    '''
-    for node in unnecessary_nodes:
-        node.printNode()
-    '''
-
     calculateWastedTime()
 
     writeOutWastedTime()
     writeOutWastedTimeExcel()
-
-    #printAllNodes()
-
-    #example to access node with id
-    #nodes[3].printNode()
-
-    #printWorkersWastedTime()
-    
-
-    #print("Total wasted time: " + str(calculateTotalWastedTime()))
